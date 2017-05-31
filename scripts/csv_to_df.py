@@ -3,7 +3,8 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 
-from utils.utils import multiplet_to_ohe
+from utils.utils import (multiplet_to_ohe,
+					    ohe_label)
 
 MULTIPLETS = ['S','D','T','Q']
 
@@ -49,6 +50,13 @@ for index,row in df.iterrows():
 out_df = pd.DataFrame(data,index=None)
 
 out_df['samples'] = out_df['samples'].apply(featurize)
+out_df['label'] = out_df['label'].apply(ohe_label)
+samples = np.array(out_df['samples'].tolist())
+labels = np.array(out_df['label'].tolist())
+# print(samples[0])
+# print(labels[0][0])
+# out_df.to_csv('data/features_head_1.csv',index=False)
+np.savez('data/features_head.npz', samples=samples, labels=labels)
 
-out_df.to_csv('data/features.csv',index=False)
-
+# npzfile = np.load('data/features_head.npz')
+# print(npzfile.files)
