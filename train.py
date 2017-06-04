@@ -3,7 +3,7 @@ import sys
 import numpy as np
 import tensorflow as tf
 
-from models import BaseModel as Model
+from models import Model
 from utils.utils import DataSet
 
 tf.app.flags.DEFINE_string("dataset", None, 'Path to dataset npz.')

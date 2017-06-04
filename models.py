@@ -4,8 +4,8 @@ import tensorflow as tf
 
 from utils.utils import *
 
-class BaseModel(object):
-	"""Base class for Seq2Seq model"""
+class Model(object):
+	"""Class for Seq2Seq model"""
 	def __init__(self, cell_size, num_layers, lr=5e-5, cell_type='gru'):
 		self.vocab_size = len(OUTPUT_CHARS)
 		self.learning_rate = lr
@@ -21,5 +21,5 @@ class BaseModel(object):
 			self.cell = tf.nn.rnn_cell.MultiRNNCell([single_cell] * num_layers)
 
 	def step(self):
-		raise NotImplementedError("Subclass needs to implement 'step' method")
+		pass
 		
