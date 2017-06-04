@@ -2,6 +2,8 @@ from mlxtend.preprocessing import one_hot
 import numpy as np
 import os
 import sys
+import random
+import math
 
 OUTPUT_CHARS = ['#', ')', '(', '+', '-', ',', '/', '.', '1', '0',
                     '3', '2', '5', '4', '7', '6', '9', '8', ':', '=', 'A',
@@ -55,20 +57,36 @@ def multiplet_to_ohe(multiplet):
 
 
 class DataSet(object):
-	def __init__(self, file_path):
+	def __init__(self, file_path, valid_size=0.2):
 		self.file_path = file_path
 		self.npzfile = np.load(self.file_path)
 		self.files = self.npzfile.files
 		self.samples = self.npzfile['samples']
 		self.labels = self.npzfile['labels']
 		assert self.samples.shape[0] == self.labels.shape[0], "Number of samples and labels are not equal"
+		self.set_size = self.samples.shape[0]
+		total_indices = list(range(self.set_size))
+		random.shuffle(total_indices)
+		valid_partition = math.floor(self.set_size*valid_size)
+		train_indices = total_indices[:-valid_partition]
+		valid_indicies = total_indices[-valid_partition:]
+		self.train_samples = np.take(self.samples, train_indices)
+		self.train_labels = np.take(self.labels, train_indices)
+		self.valid_samples = np.take(self.samples, valid_indicies)
+		self.valid_labels = np.take(self.labels, valid_indicies)
 
-	def get_batch(self, batch_size, set_type='train'):
-		assert set_type in ('train','valid'), "Unrecognized set_type %s" % set_type
-		indices = np.random.randint(0,self.samples.shape[0],batch_size)
-		samples_batch = np.take(self.samples,indices)
-		labels_batch = np.take(self.labels,indices)
+	def get_batch(self, batch_size, batch_type):
+		assert batch_type in ('train','valid'), "Unrecognized batch_type %s" % batch_type
+
+		def batch_helper(samples, labels):
+			indices = np.random.randint(0, samples.shape[0], batch_size)
+			samples_batch = np.take(samples, indices)
+			labels_batch = np.take(labels, indices)
+			return (samples_batch, labels_batch)
+
+		if batch_type == 'train':
+			samples_batch, labels_batch = batch_helper(self.train_samples, self.train_labels)
+		else:
+			samples_batch, labels_batch = batch_helper(self.valid_samples, self.valid_labels)
 		return (samples_batch, labels_batch)
 		
-
-

@@ -20,6 +20,9 @@ class Model(object):
 		if num_layers > 1:
 			self.cell = tf.nn.rnn_cell.MultiRNNCell([single_cell] * num_layers)
 
-	def step(self):
-		pass
+	def step(self, samples_batch, labels_batch, step_type):
+		assert step_type in ('train','valid'), "Unrecognized step_type %s" % step_type
+		
+		print(samples_batch.shape)
+		print(labels_batch.shape)
 		
