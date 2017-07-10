@@ -5,14 +5,15 @@ import sys
 import random
 import math
 
+from utils.indigo.indigo import Indigo
+
 OUTPUT_CHARS = ['#', ')', '(', '+', '-', ',', '/', '.', '1', '0',
                     '3', '2', '5', '4', '7', '6', '9', '8', ':', '=', 'A',
                     '@', 'C', 'B', 'G', 'F', 'I', 'H', 'K', 'M', 'L', 'O',
                     'N', 'P', 'S', 'R', 'U', 'T', 'W', 'V', 'Y', '[', 'Z',
                     ']', '\\',  'a', 'c', 'b', 'e', 'd', 'g', 'f', 'i',
-                    #'|', '^', ' ', # Characters that have since been excluded
                     'h', 'l', 'o', 'n', 's', 'r', 'u', 't',
-                    '*', 'EOS_ID', 'GO_ID', '<>' # Special tokens
+                    '*', 'EOS_ID', 'GO_ID', '<>'
                     ]
 
 VOCAB_SIZE = len(OUTPUT_CHARS)
@@ -55,6 +56,11 @@ def multiplet_to_ohe(multiplet):
 	val = multiplet_map[multiplet]
 	return np.squeeze(one_hot(np.array([val]), dtype='int', num_labels=num_labels))
 
+def smiles_to_mw(smiles):
+	indigo = Indigo()
+	mol = indigo.loadMolecule(smiles)
+	return mol.molecularWeight()
+
 
 class DataSet(object):
 	def __init__(self, file_path, valid_size=0.2):
@@ -70,18 +76,18 @@ class DataSet(object):
 		valid_partition = math.floor(self.set_size*valid_size)
 		train_indices = total_indices[:-valid_partition]
 		valid_indicies = total_indices[-valid_partition:]
-		self.train_samples = np.take(self.samples, train_indices)
-		self.train_labels = np.take(self.labels, train_indices)
-		self.valid_samples = np.take(self.samples, valid_indicies)
-		self.valid_labels = np.take(self.labels, valid_indicies)
+		self.train_samples = self.samples[train_indices]
+		self.train_labels = self.labels[train_indices]
+		self.valid_samples = self.samples[valid_indicies]
+		self.valid_labels = self.labels[valid_indicies]
 
 	def get_batch(self, batch_size, batch_type):
 		assert batch_type in ('train','valid'), "Unrecognized batch_type %s" % batch_type
 
 		def batch_helper(samples, labels):
 			indices = np.random.randint(0, samples.shape[0], batch_size)
-			samples_batch = np.take(samples, indices)
-			labels_batch = np.take(labels, indices)
+			samples_batch = samples[indices]
+			labels_batch = labels[indices]
 			return (samples_batch, labels_batch)
 
 		if batch_type == 'train':
@@ -89,4 +95,3 @@ class DataSet(object):
 		else:
 			samples_batch, labels_batch = batch_helper(self.valid_samples, self.valid_labels)
 		return (samples_batch, labels_batch)
-		
